@@ -66,21 +66,48 @@ document.getElementById('size-btns').addEventListener('click', function(e) { // 
   render(); // 렌더링
 });
 
+
+// HTML 파일 & buildTable() 과 같이 볼 것
+// board의 태그 현황
+/*
+ * <table>
+ *  <tr>
+ *    <td class = 'game-cell' ... ></td>, <td></td>, ... <td></td>
+ *  </tr>
+ *   (repeat...)
+ * </table>
+ */
 boardEl.addEventListener('click', function(e) {
   if (winner || hitBomb) return; // 전부 폭탄없는 부분을 누르거나 폭탄을 클릭한 경우
   
   var clickedEl;
   clickedEl = e.target.tagName.toLowerCase() === 'img' ? e.target.parentElement : e.target;
-  if (clickedEl.classList.contains('game-cell')) {
-    if (!timerId) setTimer();
+  //클릭한 element의 태그가 img라면... 부모Element로 바꾼다 // 아니라면 그대로 놔둔다..?
+  /*  <html> <body> </body> </html> 에서
+   *  body에 대해 .parentElement를 하면 <html>을 반환.
+   *  
+   *  parentNode와 parentElement를 비슷한 역할을 하지만, 
+   *  Node의 경우 최상위 elemnet에서 Document를 반환하지만
+   *  Element는 null을 반환한다.
+   *  각각의 셀<td class='game-cell' ..>은 내부에 img 태그를 포함(flagImage / bombImage 등)
+   */
+
+  if (clickedEl.classList.contains('game-cell')) { 
+    //buildTable() 함수를 보면 각 cell마다 game-cell이라는 class명을 붙이는 것을 알 수 있다.
+    if (!timerId) setTimer(); 
+    // 첫 클릭 전까지는 timer가 시작되지 않으므로, 첫 클릭시 setTimer()를 호출해 타이머 시작!
     var row = parseInt(clickedEl.dataset.row);
     var col = parseInt(clickedEl.dataset.col);
     var cell = board[row][col];
+    // 누른 셀의 attribute 값인 row와 col을 가져와서 cell 변수에 담는다.
+
     if (e.shiftKey && !cell.revealed && bombCount > 0) {
       bombCount += cell.flag() ? -1 : 1;
+      // Shift와 함께 좌클릭을 하고 & 셀이 열리지 않았으며 & bombCount가 0보다 큰 경우 해당 셀을 flag 표시!
+      // 취소의 경우도 처리!  (**** 우클릭으로 변경 예정)
     } else {
-      hitBomb = cell.reveal();
-      if (hitBomb) {
+      hitBomb = cell.reveal(); // Cell을 열었을 때 폭탄 여부에 따른 true, false 반환
+      if (hitBomb) { 
         revealAll();
         clearInterval(timerId);
         e.target.style.backgroundColor = 'red';
@@ -185,6 +212,7 @@ function buildTable() { // core Function #1
     cell.setAttribute('data-col', idx % size);
   });
   // 용도 불명... 뭔 목적인지 이해 불가 ㅠㅠ 
+  // 각 셀마다 row와 col 값을 attribute로 입력하는 것으로 판단됨
 }
 
 function buildArrays() { // core Function #2
